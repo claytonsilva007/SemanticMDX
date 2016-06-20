@@ -1,7 +1,6 @@
 package br.com.controlador;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -123,7 +122,7 @@ public class ControladorSemantico implements ControladorSemanticoInterface{
 
 	/**
 	 * este método irá retornar as datas que correspondentes a um intervalo de dias.
-	 * Exemplo: 01/01/2010, 02/01/2010, 03/01/2010. 
+	 * Exemplo: {[ano].[mes].[dia]}, ... 
 	 * @return
 	 */
 	public String montarDatasParteFeriado(String diasParteDeIntervalo, String diaInicioFimIntervalo,
@@ -150,26 +149,27 @@ public class ControladorSemantico implements ControladorSemanticoInterface{
 		*/ 
 		//feriadaoFimDeSemana - sexta, sábado, domingo
 		if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("sexta")){
-			datasIntervalo.append(data + Configuracoes.SEPARADOR);
-			datasIntervalo.append((++diaBase) +"/"+ mes +"/"+ ano + Configuracoes.SEPARADOR);
-			datasIntervalo.append((++diaBase) +"/"+ mes +"/"+ ano);
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + "}");
+
 			//impresadoFimDeSemana	- quinta, sexta, sábado, domingo
 		} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("quinta")){
-			datasIntervalo.append(data + Configuracoes.SEPARADOR);
-			datasIntervalo.append((++diaBase) +"/"+ mes +"/"+ ano + Configuracoes.SEPARADOR);
-			datasIntervalo.append((++diaBase) +"/"+ mes +"/"+ ano + Configuracoes.SEPARADOR);
-			datasIntervalo.append((++diaBase) +"/"+ mes +"/"+ ano);
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
+
 			//feriadaoInicioSemana - sábado, domingo, segunda
 		} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[1]) && diaSemanaOcorrFeriado.equals("segunda")){
-			datasIntervalo.append(data+ Configuracoes.SEPARADOR);
-			datasIntervalo.append(--diaBase +"/"+ mes +"/"+ ano + Configuracoes.SEPARADOR);
-			datasIntervalo.append(--diaBase +"/"+ mes +"/"+ ano);
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
+			
 			//imprensadoInicioSemana - sábado, domingo, segunda, terça
 		} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[1]) && diaSemanaOcorrFeriado.equals("terca")){
-			datasIntervalo.append(data+ Configuracoes.SEPARADOR);
-			datasIntervalo.append(--diaBase +"/"+ mes +"/"+ ano + Configuracoes.SEPARADOR);
-			datasIntervalo.append(--diaBase +"/"+ mes +"/"+ ano + Configuracoes.SEPARADOR);;
-			datasIntervalo.append(--diaBase +"/"+ mes +"/"+ ano);
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
 		}
 		return datasIntervalo.toString();
 	}
@@ -212,6 +212,6 @@ public class ControladorSemantico implements ControladorSemanticoInterface{
 	
 	/*public static void main(String arg[]){
 		ControladorSemantico cs = new ControladorSemantico();
-		cs.consultarDiasParteIntervalo("FeriadaoFimDeSemana");
+		System.out.println(cs.consultarDiasParteIntervalo("FeriadaoFimDeSemana"));
 	}*/
 }
