@@ -27,7 +27,7 @@ public class ControladorSemantico implements ControladorSemanticoInterface{
 		HashMap<String, String> mapTermoValorOnto = new HashMap<>();
 		String diasParteDeIntervalo = "";
 		String diaInicioFimIntervalo = "";
-		String diaSemanaOcorrFeriado = "";;
+		String diaSemanaOcorrFeriado = "";
 		HashMap<String, String> mapDataFeriado = new HashMap<>();;
 		String listaDatasParteIntervalo = "";
 		
@@ -149,9 +149,9 @@ public class ControladorSemantico implements ControladorSemanticoInterface{
 		*/ 
 		//feriadaoFimDeSemana - sexta, sábado, domingo
 		if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("sexta")){
-			datasIntervalo.append("{" + "[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + "}");
+			datasIntervalo.append("{" + "[Time.Weekly].[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("[Time.Weekly].[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+			datasIntervalo.append("[Time.Weekly].[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + "}");
 
 			//impresadoFimDeSemana	- quinta, sexta, sábado, domingo
 		} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("quinta")){

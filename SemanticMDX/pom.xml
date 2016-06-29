@@ -33,7 +33,7 @@
 			<version>3.8.1</version>
 			<scope>test</scope>
 		</dependency>
-
+<!-- 
 		<dependency>
 			<groupId>net.sourceforge.owlapi</groupId>
 			<artifactId>pellet-core-ignazio1977</artifactId>
@@ -52,7 +52,28 @@
 			<version>2.4.0-ignazio1977</version>
 		</dependency>
 
+ -->	
+		
+		<!-- https://mvnrepository.com/artifact/edu.stanford.protege/protege-editor-owl -->
 		<dependency>
+			<groupId>edu.stanford.protege</groupId>
+			<artifactId>protege-editor-owl</artifactId>
+			<version>5.0.0-RC1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>net.sourceforge.owlapi</groupId>
+			<artifactId>pellet-core-ignazio1977</artifactId>
+			<version>2.4.0-ignazio1977</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>net.sourceforge.owlapi</groupId>
+			<artifactId>pellet-owlapi-ignazio1977</artifactId>
+			<version>2.4.0-ignazio1977</version>
+		</dependency>
+		 	
+ 		<dependency>
 			<groupId>asm</groupId>
 			<artifactId>asm</artifactId>
 			<version>3.3.1</version>

@@ -8,6 +8,7 @@ import javax.ws.rs.core.Response;
 
 import org.json.JSONException;
 
+import br.com.controlador.Controlador;
 import br.com.controlador.ControladorSemantico;
 
 @Path("/query")
@@ -16,8 +17,11 @@ public class WS_SemanticQuery {
 	@GET
 	@Produces("application/json")
 	public Response submeterConsultaMDX(@QueryParam("queryMDX") String queryMDX) throws JSONException {
-		ControladorSemantico mediador = new ControladorSemantico();
+		Controlador mediador = new Controlador();
 		String novaConsulta = mediador.submeterConsulta(queryMDX);
 		return Response.status(200).entity(novaConsulta).build();
+		/*ControladorSemantico mediador = new ControladorSemantico();
+		String novaConsulta = mediador.submeterConsulta(queryMDX);
+		return Response.status(200).entity(novaConsulta).build();*/
 	}
 }
