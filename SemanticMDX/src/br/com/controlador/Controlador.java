@@ -1,11 +1,14 @@
 package br.com.controlador;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 
 import br.com.ontologia.SemanticHelper;
 import br.com.util.AssistenteDeData;
@@ -47,8 +50,8 @@ public class Controlador {
 			//para cada indivíduo subclasse de uma dada classExpression ...
 			for (OWLNamedIndividual owlIndividual : listaDeIndividuos) { 
 				String diasParteIntervaloFormatoOntologia = this.semanticHelper.consultarDiasDaSemanaParteDeIntervalo(owlIndividual);
-				diasParteIntervalo = this.extrairDiasDaSemana(diasParteIntervaloFormatoOntologia);
-				diaInicioFimIntervalo = this.extrairDiasDaSemana(this.semanticHelper.consultarInicioFimIntervalo(owlIndividual));
+				diasParteIntervalo = this.extrairInformacaoFormatoOntologia(diasParteIntervaloFormatoOntologia);
+				diaInicioFimIntervalo = this.extrairInformacaoFormatoOntologia(this.semanticHelper.consultarInicioFimIntervalo(owlIndividual));
 				diaSemanaOcorrFeriado = this.consultarDiaSemanaOcorrFeriado(owlIndividual);
 				mapDataFeriado = this.consultarDataFeriado(owlIndividual);
 				String datasParteIntervaloPorIndividuo = this.montarDatasParteFeriado(diasParteIntervalo, diaInicioFimIntervalo, diaSemanaOcorrFeriado, mapDataFeriado);
@@ -105,12 +108,12 @@ public class Controlador {
 	
 	/**
 	 * extrai os dias da semana da iri da ontologia
-	 * @param diasParteIntervaloFormatoOntologia
+	 * @param elementoFormatoIRIOntologia
 	 * @return
 	 */
-	public String extrairDiasDaSemana(String diasParteIntervaloFormatoOntologia){
+	public String extrairInformacaoFormatoOntologia(String elementoFormatoIRIOntologia){
 		String diasDaSemanaParteIntervalo = "";
-		String[] vetorDiasDasemana = diasParteIntervaloFormatoOntologia.split(Configuracoes.SEPARADOR);
+		String[] vetorDiasDasemana = elementoFormatoIRIOntologia.split(Configuracoes.SEPARADOR);
 		for(int i=0; i< vetorDiasDasemana.length; i++){
 			if(diasDaSemanaParteIntervalo.equals("")){
 				diasDaSemanaParteIntervalo = vetorDiasDasemana[i].substring(vetorDiasDasemana[i].indexOf(Configuracoes.SEPARADOR_ONTOLOGICO) + 1, vetorDiasDasemana[i].indexOf(">"));
@@ -198,5 +201,59 @@ public class Controlador {
 			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
 		}
 		return datasIntervalo.toString();
+	}
+
+	public ArrayList<String> consultarSuperClasses(String query) {
+		ArrayList<String> listaDeSuperClasses = new ArrayList<>();
+		Set<OWLClass> superClasses = this.semanticHelper.consultarSuperClassesDLExpressionClass(query, "ajustar depois");
+		for (OWLClass owlClass : superClasses) {
+			listaDeSuperClasses.add(this.extrairInformacaoFormatoOntologia(owlClass.toString()));
+		}
+		return listaDeSuperClasses;
+	}
+	
+	public ArrayList<String> consultarClasses(String query){
+		ArrayList<String> listaDeClasses = new ArrayList<>();
+		Set<OWLClass> classes = this.semanticHelper.consultarClassesDLExpressionClass(query, "ajustar depois");
+		for (OWLClass owlClass : classes) {
+			listaDeClasses.add(this.extrairInformacaoFormatoOntologia(owlClass.toString()));
+		}
+		return listaDeClasses;
+	} 
+	
+	public ArrayList<String> consultarInstancias(String query){
+		ArrayList<String> listaDeInstancias = new ArrayList<>();
+		Set<OWLNamedIndividual> instancias = this.semanticHelper.consultarInstanciasDLExpressionClass(query, "ajustar depois");
+		for (OWLNamedIndividual owlNamedIndividual : instancias) {
+			listaDeInstancias.add(this.extrairInformacaoFormatoOntologia(owlNamedIndividual.toString()));
+		}
+		return listaDeInstancias;
+	}
+	
+	public ArrayList<String> consultarEquivalentClasses(String query){
+		ArrayList<String> listaDeEquivalentClasses = new ArrayList<>();
+		Set<OWLClass> equivalentClasses = this.semanticHelper.consultarEquivalentClassesDLExpressionClass(query, "ajustar depois");
+		for (OWLClass owlClass : equivalentClasses) {
+			listaDeEquivalentClasses.add(this.extrairInformacaoFormatoOntologia(owlClass.toString()));
+		}
+		return listaDeEquivalentClasses;
+	}
+	
+	public ArrayList<String> consultarTodasAsClassesOntologia(){
+		ArrayList<String> listaClasses = new ArrayList<>();
+		Set<OWLClass> listaTodasAsclasses = this.semanticHelper.consultarTodasAsClassesOntologia();
+		for (OWLClass owlClass : listaTodasAsclasses) {
+			listaClasses.add(this.extrairInformacaoFormatoOntologia(owlClass.toString()));
+		}
+		return listaClasses;
+	}
+	
+	public ArrayList<String> consultarPropriedadesOntologia(){
+		ArrayList<String> listaPropriedades = new ArrayList<>();
+		Set<OWLObjectProperty> listaTemp = this.semanticHelper.consultarTodasPropriedadesOntologia();
+		for (OWLObjectProperty owlObjectProperty : listaTemp) {
+			listaPropriedades.add(this.extrairInformacaoFormatoOntologia(listaTemp.toString()));
+		}
+		return listaPropriedades;
 	}
 }

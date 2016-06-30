@@ -234,12 +234,24 @@ public class SemanticHelper implements SemanticHelperInterface{
 	public Set<OWLNamedIndividual> consultarInstanciasDLExpressionClass(String classExpressionString, String ontologiaRelacionada){
 		return this.dlQueryEngine.getInstances(classExpressionString, true);
 	}
-
-	public static void main(String args[]){
-		SemanticHelper sh = new SemanticHelper();
-		Set<OWLNamedIndividual> instancias = sh.dlQueryEngine.getInstances("temDiaFeriado some Domingo", true);
-		for (OWLNamedIndividual owlNamedIndividual : instancias) {
-			System.out.println(owlNamedIndividual.toString());
-		}
+	
+	public Set<OWLClass> consultarClassesDLExpressionClass(String classExpressionString, String ontologiaRelacionada){
+		return this.dlQueryEngine.getSubClasses(classExpressionString, true);
+	}
+	
+	public Set<OWLClass> consultarEquivalentClassesDLExpressionClass(String classExpressionString, String ontologiaRelacionada){
+		return this.dlQueryEngine.getEquivalentClasses(classExpressionString);
+	}
+	
+	public Set<OWLClass> consultarSuperClassesDLExpressionClass(String classExpressionString, String ontologiaRelacionada){
+		return this.dlQueryEngine.getSuperClasses(classExpressionString, true);
+	}
+	
+	public Set<OWLClass> consultarTodasAsClassesOntologia(){
+		return OWL_ONTOLOGY.getClassesInSignature();
+	}
+	
+	public Set<OWLObjectProperty> consultarTodasPropriedadesOntologia(){
+		return OWL_ONTOLOGY.getObjectPropertiesInSignature();
 	}
 }
