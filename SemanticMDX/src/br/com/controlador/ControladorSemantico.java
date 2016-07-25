@@ -5,9 +5,12 @@ import java.util.HashMap;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import br.com.ontologia.SemanticHelper;
 import br.com.ontologia.SemanticHelperInterface;
+import br.com.pojo.ClasseFeriado;
 import br.com.util.AssistenteDeData;
 import br.com.util.Configuracoes;
 
@@ -210,8 +213,14 @@ public class ControladorSemantico implements ControladorSemanticoInterface{
 		return termosSemanticos;
 	}
 	
-	/*public static void main(String arg[]){
-		ControladorSemantico cs = new ControladorSemantico();
-		System.out.println(cs.consultarDiasParteIntervalo("FeriadaoFimDeSemana"));
-	}*/
+	/**
+	 * Este método receberá uma colection
+	 */
+	public void criarInstanciasFeriados(ArrayList<ClasseFeriado> datasFeriados){
+		try {
+			this.semanticHelper.criarInstanciasFeriados(datasFeriados);
+		} catch (OWLOntologyCreationException | OWLOntologyStorageException e) {
+			e.printStackTrace();
+		}
+	}	
 }

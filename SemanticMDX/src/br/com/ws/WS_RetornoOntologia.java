@@ -1,5 +1,8 @@
 package br.com.ws;
 
+import java.util.ArrayList;
+
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -9,11 +12,11 @@ import org.json.JSONException;
 
 import br.com.controlador.Controlador;
 import br.com.pojo.ClassesOntologia;
-import br.com.pojo.PropriedadesOntologia;
 import br.com.pojo.RetornoOntologia;
 
 @Path("/dl")
 public class WS_RetornoOntologia {
+	
 	@Path("{query}")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -28,4 +31,26 @@ public class WS_RetornoOntologia {
 		
 		return retornoOntologia;
 	}
+	
+	@Path("{classes}")
+	@GET
+	@Produces("application/json")
+	public ClassesOntologia consultarClasses() throws JSONException {
+		Controlador mediador = new Controlador();
+		ClassesOntologia classesOntologia = new ClassesOntologia();
+		ArrayList<String> listaDeclassesOntologia = mediador.consultarTodasAsClassesOntologia();
+		classesOntologia.setClasses(listaDeclassesOntologia);
+		return classesOntologia;
+	}
+	
+	/*@Path("{propriedades}")
+	@GET
+	@Produces("application/json")
+	public PropriedadesOntologia consultarPropriedades() throws JSONException {
+		Controlador mediador = new Controlador();
+		PropriedadesOntologia propriedadesOntologia = new PropriedadesOntologia();
+		ArrayList<String> ListaDePropriedadesOntologia = mediador.consultarPropriedadesOntologia();
+		propriedadesOntologia.setPropriedades(ListaDePropriedadesOntologia);
+		return propriedadesOntologia;
+	}*/
 }
