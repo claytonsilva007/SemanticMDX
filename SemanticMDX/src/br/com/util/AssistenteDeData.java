@@ -1,6 +1,5 @@
 package br.com.util;
 
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -8,25 +7,20 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
-import javax.xml.crypto.Data;
-
 public class AssistenteDeData {
-	public static String retornarDiaSemana(int ano, int mes, int dia)  
-	{  
-
+	public static String retornarDiaSemana(int ano, int mes, int dia){  
 		Calendar calendario = new GregorianCalendar(ano, mes - 1, dia);  
 		int diaSemana = calendario.get(Calendar.DAY_OF_WEEK);  
-
 		return pesquisarDiaSemana(diaSemana);  
 	}  
 
 	//faz a pesquisa, dado um inteiro de 1 a 7  
-	public static String pesquisarDiaSemana(int _diaSemana)  
-	{  
+	public static String pesquisarDiaSemana(int _diaSemana){  
+		
 		String diaSemana = null;  
-
+		
 		switch (_diaSemana){  
-
+			
 			case 1:  
 				diaSemana = "domingo";  
 				break;  

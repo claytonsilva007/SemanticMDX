@@ -6,14 +6,12 @@ import java.util.HashMap;
 import java.util.Set;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.io.StreamDocumentTarget;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
-import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -29,17 +27,17 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.util.ShortFormProvider;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
-import org.semanticweb.owlapi.vocab.OWLFacet;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
 import br.com.ontologia.dlquery.DLQueryEngine;
-import br.com.ontologia.dlquery.DLQueryParser;
+import br.com.ontologia.dw.DimensionHelper;
 import br.com.pojo.ClasseFeriado;
+import br.com.util.AssistenteDeData;
 import br.com.util.Configuracoes;
 
 public class SemanticHelper implements SemanticHelperInterface{
-	private static final File file = new File("C:\\Users\\clayton\\Desktop\\testandoTopObjectProperty.owl");
+	private static final File file = new File("C:\\Users\\clayton\\git\\projeto-mestrado-arquivos\\testandoTopObjectProperty.owl");
 	private static OWLOntology OWL_ONTOLOGY = null;
 
 	private OWLReasoner reasoner;
@@ -269,10 +267,13 @@ public class SemanticHelper implements SemanticHelperInterface{
 
 		OWLOntologyManager manager = OWL_ONTOLOGY.getOWLOntologyManager(); 
 		OWLDataFactory factory = OWL_ONTOLOGY.getOWLOntologyManager().getOWLDataFactory();
-		
+
 		for (ClasseFeriado feriado : feriados) {
 			OWLIndividual descricaoFeriado = factory.getOWLNamedIndividual(IRI.create(Configuracoes.IRI_BASE + "#" + feriado.getNome())); //novo indivíduo
-			OWLIndividual diaSemanaOcorrencia = factory.getOWLNamedIndividual(IRI.create(Configuracoes.IRI_BASE + "#" + feriado.getDiaDaSemanaOcorrencia()));
+			
+			String diaDaSemanaOcorFeriado = AssistenteDeData.retornarDiaSemana(Integer.parseInt(feriado.getAno()), Integer.parseInt(feriado.getMes()), Integer.parseInt(feriado.getDia()));
+				
+			OWLIndividual diaSemanaOcorrencia = factory.getOWLNamedIndividual(IRI.create(Configuracoes.IRI_BASE + "#" + diaDaSemanaOcorFeriado));
 			OWLObjectProperty property = factory.getOWLObjectProperty(IRI.create(Configuracoes.IRI_BASE + "#temDiaFeriado"));
 			OWLObjectPropertyAssertionAxiom axiom1 = factory.getOWLObjectPropertyAssertionAxiom(property, descricaoFeriado, diaSemanaOcorrencia);
 
@@ -299,22 +300,29 @@ public class SemanticHelper implements SemanticHelperInterface{
 
 			AddAxiom addAxiomAno = new AddAxiom(this.OWL_ONTOLOGY, axiomAno);
 			manager.applyChange(addAxiomAno);
-			
+
 			manager.saveOntology(OWL_ONTOLOGY);
 
 		}
 	}
 
 	public static void main(String args[]){
+		DimensionHelper dh = new DimensionHelper();
+		ArrayList<ClasseFeriado> feriadosDW = dh.consultarFeriados();
 		ArrayList<ClasseFeriado> feriados = new ArrayList<>();
 		SemanticHelper sh = new SemanticHelper();
-		ClasseFeriado feriado = new ClasseFeriado();
-		feriado.setDia("15");
-		feriado.setMes("12");
-		feriado.setAno("2016");
-		feriado.setDiaDaSemanaOcorrencia("sexta");
-		feriado.setNome("feriadoTesteABCD");
-		feriados.add(feriado);	
+		
+		for (ClasseFeriado classeFeriado : feriadosDW) {
+			if(classeFeriado.getNome() != null || !classeFeriado.getNome().equals("")){
+				ClasseFeriado classeFeriadoTemp = new ClasseFeriado();
+				classeFeriadoTemp.setDia(classeFeriado.getDia());
+				classeFeriadoTemp.setMes(classeFeriado.getMes());
+				classeFeriadoTemp.setAno(classeFeriado.getAno());
+				classeFeriadoTemp.setDiaDaSemanaOcorrencia(classeFeriado.getDiaDaSemanaOcorrencia());
+				classeFeriadoTemp.setNome(classeFeriado.getNome().replace(" ", "_") + "_" + classeFeriadoTemp.getAno());
+				feriados.add(classeFeriadoTemp);
+			}
+		}
 
 		try {
 			sh.criarInstanciasFeriados(feriados);

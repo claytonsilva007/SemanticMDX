@@ -8,9 +8,29 @@ public class ClasseFeriado {
 	private String mes;
 	private String ano;
 	private String diaDaSemanaOcorrencia;
+	private String abrangencia;
 	
 	public ClasseFeriado(){
 		
+	}
+	
+	public ClasseFeriado(String descricao, String numDia, String numMes, String numAno, String diaSemana, String abrangencia){
+		super();
+		this.nome = descricao;
+		this.dia = numDia;
+		this.mes = numMes;
+		this.ano = numAno;
+		this.diaDaSemanaOcorrencia = diaSemana;
+		this.abrangencia = abrangencia;
+	}
+
+	public ClasseFeriado(String nome, String dia, String mes, String ano, String diaDaSemanaOcorrencia) {
+		super();
+		this.nome = nome;
+		this.dia = dia;
+		this.mes = mes;
+		this.ano = ano;
+		this.diaDaSemanaOcorrencia = diaDaSemanaOcorrencia;
 	}
 
 	public String getNome() {
@@ -59,5 +79,13 @@ public class ClasseFeriado {
 
 	public void setDiaDaSemanaOcorrencia(String diaDaSemanaOcorrencia) {
 		this.diaDaSemanaOcorrencia = diaDaSemanaOcorrencia;
+	}
+
+	public String getAbrangencia() {
+		return abrangencia;
+	}
+
+	public void setAbrangencia(String abrangencia) {
+		this.abrangencia = abrangencia;
 	}
 }

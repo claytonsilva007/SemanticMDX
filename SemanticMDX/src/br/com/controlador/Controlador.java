@@ -1,6 +1,5 @@
 package br.com.controlador;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -23,9 +22,9 @@ public class Controlador {
 	public Controlador(){
 		this.semanticHelper = new SemanticHelper();
 	}
-	
+
 	public String submeterConsulta(String queryMDX){
-		StringBuilder stringBuilder = new StringBuilder();
+		String strDimensao = "[Feriado.Default].";
 		String novaConsultaMDX = queryMDX;
 		this.mapDLOntologia = new HashMap<>();
 		this.listaDLOntologia = new ArrayList<>();
@@ -34,19 +33,20 @@ public class Controlador {
 		String diasParteIntervalo = "";
 		String diaInicioFimIntervalo = "";
 		String diaSemanaOcorrFeriado = "";
-		HashMap<String, String> mapDiaMesAnoFeriado = new HashMap<>();
-		String listaDatasParteIntervalo = "";
 		HashMap<String, String> mapDataFeriado = new HashMap<>();
 		this.colecaoDatasParteIntervaloPorInvididuo = new ArrayList<>();
-		
-		ArrayList<String> colecaoClassExpression = this.extrairClassExpressionEOntologiaRelacionada(queryMDX); //identificando @dl:ontologia@
-		for (String classExpressionString : colecaoClassExpression) {
+
+		StringBuffer strClausulaWhere = new StringBuffer(""); 
+
+		ArrayList<String> ontologyClassExpression = this.extrairClassExpressionEOntologiaRelacionada(queryMDX); //identificando @dl:ontologia@
+		for (String classExpressionString : ontologyClassExpression) {
 			vetorDlonto = classExpressionString.split(":");
-			String dl = vetorDlonto[0];
-			String ontologiaRelacionada = vetorDlonto[1];
+			String dl = vetorDlonto[0]; // a posição 0 representa a expressão ontológica
+			String ontologiaRelacionada = vetorDlonto[1]; // a posição 1 representa a ontologia em que será realizada a consulta
 
 			listaDeIndividuos = this.semanticHelper.consultarInstanciasDLExpressionClass(dl, ontologiaRelacionada);
-			int posicaoAtual = 0;
+			int posicaoAtualVetorIndividuos = 0;
+
 			//para cada indivíduo subclasse de uma dada classExpression ...
 			for (OWLNamedIndividual owlIndividual : listaDeIndividuos) { 
 				String diasParteIntervaloFormatoOntologia = this.semanticHelper.consultarDiasDaSemanaParteDeIntervalo(owlIndividual);
@@ -54,22 +54,88 @@ public class Controlador {
 				diaInicioFimIntervalo = this.extrairInformacaoFormatoOntologia(this.semanticHelper.consultarInicioFimIntervalo(owlIndividual));
 				diaSemanaOcorrFeriado = this.consultarDiaSemanaOcorrFeriado(owlIndividual);
 				mapDataFeriado = this.consultarDataFeriado(owlIndividual);
+
 				String datasParteIntervaloPorIndividuo = this.montarDatasParteFeriado(diasParteIntervalo, diaInicioFimIntervalo, diaSemanaOcorrFeriado, mapDataFeriado);
-				
-				if(posicaoAtual < listaDeIndividuos.size() - 1){
-					stringBuilder.append(datasParteIntervaloPorIndividuo + ",");
-				} else {
-					stringBuilder.append(datasParteIntervaloPorIndividuo);
+
+				if(!datasParteIntervaloPorIndividuo.equals("0/0/0")){
+					if(datasParteIntervaloPorIndividuo.indexOf(",") != -1){  // se != -1 é porque tem mais de uma data
+						String[] vetorDeDatasPorIndividuo = datasParteIntervaloPorIndividuo.split(","); //separando as datas por indivíduo
+						int posicaoAtualVetorDatasPorIndividuo = 0;
+						for (String data : vetorDeDatasPorIndividuo) {
+							if(posicaoAtualVetorIndividuos < listaDeIndividuos.size() - 1){ // verificando se não é o último indivíduo recuperado
+								if(posicaoAtualVetorDatasPorIndividuo == 0){
+									strClausulaWhere.append("{");
+									strClausulaWhere.append(strDimensao + "[Ano].&" + "[" + this.extrair("Ano", mapDataFeriado) + "]" + ",");
+									strClausulaWhere.append(strDimensao + "[Mes].&" + "[" + this.extrair("Mes", mapDataFeriado) + "]" +  ",");
+									strClausulaWhere.append(strDimensao + "[Dia].&" + "[" + this.extrair("Dia", mapDataFeriado) + "]");
+									strClausulaWhere.append("}, ");
+								} else if(posicaoAtualVetorDatasPorIndividuo > 0 && posicaoAtualVetorDatasPorIndividuo < vetorDeDatasPorIndividuo.length - 1) {
+									strClausulaWhere.append("{");
+									strClausulaWhere.append(strDimensao + "[Ano].&" + "[" + this.extrair("Ano", mapDataFeriado) + "]" + ",");
+									strClausulaWhere.append(strDimensao + "[Mes].&" + "[" + this.extrair("Mes", mapDataFeriado) + "]" +  ",");
+									strClausulaWhere.append(strDimensao + "[Dia].&" + "[" + this.extrair("Dia", mapDataFeriado) + "]");
+									strClausulaWhere.append("}, ");
+								} else {
+									strClausulaWhere.append("{");
+									strClausulaWhere.append(strDimensao + "[Ano].&" + "[" + this.extrair("Ano", mapDataFeriado) + "]" + ",");
+									strClausulaWhere.append(strDimensao + "[Mes].&" + "[" + this.extrair("Mes", mapDataFeriado) + "]" +  ",");
+									strClausulaWhere.append(strDimensao + "[Dia].&" + "[" + this.extrair("Dia", mapDataFeriado) + "]");
+									strClausulaWhere.append("}");
+								}
+
+								posicaoAtualVetorDatasPorIndividuo++;
+								
+							} else { // é o último indivíduo
+								if(posicaoAtualVetorDatasPorIndividuo == 0){ 
+									strClausulaWhere.append("{");
+									strClausulaWhere.append(strDimensao + "[Ano].&" + this.extrair("Ano", mapDataFeriado) + ",");
+									strClausulaWhere.append(strDimensao + "[Mes].&" + this.extrair("Mes", mapDataFeriado)+ ",");
+									strClausulaWhere.append(strDimensao + "[Dia].&" + this.extrair("Dia", mapDataFeriado));
+									strClausulaWhere.append("}");
+								} else if(posicaoAtualVetorDatasPorIndividuo > 0 && posicaoAtualVetorDatasPorIndividuo < vetorDeDatasPorIndividuo.length - 1) {
+									strClausulaWhere.append("{");
+									strClausulaWhere.append(strDimensao + "[Ano].&" + this.extrair("Ano", mapDataFeriado) + ",");
+									strClausulaWhere.append(strDimensao + "[Mes].&" + this.extrair("Mes", mapDataFeriado)+ ",");
+									strClausulaWhere.append(strDimensao + "[Dia].&" + this.extrair("Dia", mapDataFeriado));
+									strClausulaWhere.append("}");
+								} else {
+									strClausulaWhere.append("{");
+									strClausulaWhere.append(strDimensao + "[Ano].&" + this.extrair("Ano", mapDataFeriado) + ",");
+									strClausulaWhere.append(strDimensao + "[Mes].&" + this.extrair("Mes", mapDataFeriado)+ ",");
+									strClausulaWhere.append(strDimensao + "[Dia].&" + this.extrair("Dia", mapDataFeriado));
+									strClausulaWhere.append("}");
+								}
+
+								posicaoAtualVetorDatasPorIndividuo++;
+
+							}
+						}
+					} else {
+						strClausulaWhere.append("{");
+						strClausulaWhere.append(strDimensao + "[Ano].&" + "[" + this.extrair("Ano", mapDataFeriado) + "]" + ",");
+						strClausulaWhere.append(strDimensao + "[Mes].&" + "[" + this.extrair("Mes", mapDataFeriado) + "]" +  ",");
+						strClausulaWhere.append(strDimensao + "[Dia].&" + "[" + this.extrair("Dia", mapDataFeriado) + "]");
+						strClausulaWhere.append("}");
+					}
 				}
-				posicaoAtual++;
+
+				posicaoAtualVetorIndividuos++;
 			}
-			
-			novaConsultaMDX = novaConsultaMDX.replace(Configuracoes.DELIMITADOR_SEMANTICO + classExpressionString + Configuracoes.DELIMITADOR_SEMANTICO, stringBuilder.toString());
+
+			novaConsultaMDX = novaConsultaMDX.replace(Configuracoes.DELIMITADOR_SEMANTICO + classExpressionString + Configuracoes.DELIMITADOR_SEMANTICO, strClausulaWhere.toString());
 		}
-		
+
 		return novaConsultaMDX;
 	}
-	
+
+	private String adicionarFiltroWhere(HashMap<String, String> mapDataFeriado) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(".&" + "[" + this.extrair("Ano", mapDataFeriado) + "], " );
+		sb.append(".&" + "[" + this.extrair("Mes", mapDataFeriado) + "], " );
+		sb.append(".&" + "[" + this.extrair("Dia", mapDataFeriado) + "] " );
+		return sb.toString();
+	}
+
 	/**
 	 * Recebe como parâmetro uma consulta MDX e extrai dela os termos semanticos
 	 * @param consultaMDX
@@ -105,7 +171,7 @@ public class Controlador {
 		}
 		return termosSemanticos;
 	}
-	
+
 	/**
 	 * extrai os dias da semana da iri da ontologia
 	 * @param elementoFormatoIRIOntologia
@@ -125,18 +191,37 @@ public class Controlador {
 
 		return diasDaSemanaParteIntervalo;
 	}
-	
+
 	public String consultarDiaSemanaOcorrFeriado(OWLIndividual owlIndividual){
 		HashMap<String, String> mapDiaMesAnoFeriado = new HashMap<>();
 		mapDiaMesAnoFeriado = this.semanticHelper.consultarDiaMesAnoFeriado(owlIndividual);
+		int dia = 0;
+		int mes = 0;
+		int ano = 0;
 
-		int dia = Integer.parseInt(mapDiaMesAnoFeriado.get("Dia").substring(1, 3));
-		int mes = Integer.parseInt(mapDiaMesAnoFeriado.get("Mes").substring(1, 3));
-		int ano = Integer.parseInt(mapDiaMesAnoFeriado.get("Ano").substring(1, 5));
+		try{
+			dia = Integer.parseInt((mapDiaMesAnoFeriado.get("Dia")).substring(1, 3));
+		} catch(Exception e){
+			dia = Integer.parseInt((mapDiaMesAnoFeriado.get("Dia")).substring(1, 2));
+		}
+
+		try{
+			mes = Integer.parseInt(mapDiaMesAnoFeriado.get("Mes").substring(1, 3));
+		} catch(Exception e){
+			mes = Integer.parseInt(mapDiaMesAnoFeriado.get("Mes").substring(1, 2));
+		}
+		try{
+			ano = Integer.parseInt(mapDiaMesAnoFeriado.get("Ano").substring(1, 5));
+		} catch(Exception e){
+			if(dia == 0 && mes == 0){
+				ano = 0;	
+			}
+		}
+
 
 		return AssistenteDeData.retornarDiaSemana(ano, mes, dia);
 	}
-	
+
 	/**
 	 * Método que retorna a data de ocorrência do feriado
 	 * @param superClasse
@@ -148,7 +233,7 @@ public class Controlador {
 		mapDiaMesAnoFeriado = semanticHelper.consultarDiaMesAnoFeriado(owlIndividual);
 		return mapDiaMesAnoFeriado;
 	}
-	
+
 	/**
 	 * este método irá retornar as datas que correspondentes a um intervalo de dias.
 	 * Exemplo: {[ano].[mes].[dia]}, ... 
@@ -157,51 +242,105 @@ public class Controlador {
 	public String montarDatasParteFeriado(String diasParteDeIntervalo, String diaInicioFimIntervalo,
 			String diaSemanaOcorrFeriado, HashMap<String, String> mapDataFeriado) {
 
-		String dia = mapDataFeriado.get("Dia").substring(1, 3);
-		String mes = mapDataFeriado.get("Mes").substring(1, 3);
-		String ano = mapDataFeriado.get("Ano").substring(1, 5);
+		int dia = Integer.parseInt(this.extrair("Dia", mapDataFeriado));
+		int mes = Integer.parseInt(this.extrair("Mes", mapDataFeriado));
+		int ano = Integer.parseInt(this.extrair("Ano", mapDataFeriado));
 
-		String data = dia+"/"+mes+"/"+ano;
+		String data = "";
+		int diaBase = 0;
+		String retorno = "";
 
-		int diaBase = Integer.parseInt(dia);
+		data = dia+"/"+mes+"/"+ano;
+		diaBase = dia;
 
 		StringBuilder datasIntervalo = new StringBuilder();
 		String[] vetorInicioFimIntervalo = diaInicioFimIntervalo.split(Configuracoes.SEPARADOR);
 		String[] vetorDiasParteDeIntervalo = diasParteDeIntervalo.split(Configuracoes.SEPARADOR);
-		
-		 /* posição 0 representa o início
+
+		/* posição 0 representa o início
 		 *  posição 1 representa o fim 
 		 *  Se o dia de início coincidir com o dia do feriado, e ambos ocorrerem em uma sexta, estaremos diante de um feriadão de fim de semana
 		 *  Se o dia de início coincidir com o dia do feriado, e ambos ocorrerem em uma quinta, estaremos diante de um imprensado de fim de semana
 		 *  Se o dia de fim coincidir com o dia do feriado, e ambos ocorrerem em uma segunda, estaremos diante de um feriadão de início de semana
 		 *  Se o dia de fim coincidir com o dia do feriado, e ambos ocorrerem em uma terça, estaremos diante de um imprensado de início de semana
-		*/ 
-		//feriadaoFimDeSemana - sexta, sábado, domingo
-		if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("sexta")){
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
+		 */ 
 
-			//impresadoFimDeSemana	- quinta, sexta, sábado, domingo
-		} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("quinta")){
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
+		/**
+		 * Se esse vetor possuir mais de uma posição quer dizer que é um feriadão.
+		 * Caso contrário, será um feriado simples.
+		 */
+		if(vetorInicioFimIntervalo.length > 1){
+			//verificando se o intervalo possui mais de um dia. Caso não possua, não é feriadão
+			if(vetorDiasParteDeIntervalo.length > 1){
+				//feriadaoFimDeSemana - sexta, sábado, domingo
+				if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("sexta")){
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
 
-			//feriadaoInicioSemana - sábado, domingo, segunda
-		} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[1]) && diaSemanaOcorrFeriado.equals("segunda")){
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
-			
-			//imprensadoInicioSemana - sábado, domingo, segunda, terça
-		} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[1]) && diaSemanaOcorrFeriado.equals("terca")){
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
-			datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
+					//impresadoFimDeSemana	- quinta, sexta, sábado, domingo
+				} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("quinta")){
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
+
+					//feriadaoInicioSemana - sábado, domingo, segunda
+				} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[1]) && diaSemanaOcorrFeriado.equals("segunda")){
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
+
+					//imprensadoInicioSemana - sábado, domingo, segunda, terça
+				} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[1]) && diaSemanaOcorrFeriado.equals("terca")){
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
+				}
+			} else{
+				datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
+			}
+
+			retorno = datasIntervalo.toString();
+
+		} else {
+			retorno = "["+ano+"]." + "[" + mes + "]." + "[" + dia + "]";
 		}
-		return datasIntervalo.toString();
+		return retorno;
 	}
+
+	private String extrair(String str, HashMap<String, String> mapDataFeriado) {
+		String retorno = "";
+		switch (str) {
+		case "Dia":
+			try{
+				retorno = mapDataFeriado.get("Dia").substring(1, 3);
+			} catch(Exception e){
+				retorno = mapDataFeriado.get("Dia").substring(1, 2);
+			}
+		break;
+
+		case "Mes":
+			try{
+				retorno = mapDataFeriado.get("Mes").substring(1, 3);
+			} catch(Exception e){
+				retorno = mapDataFeriado.get("Mes").substring(1, 2);
+			}
+		break;
+		case "Ano":
+			try{
+				retorno = mapDataFeriado.get("Ano").substring(1, 5);
+			} catch(Exception e){
+				retorno = "0";
+			}
+		break;
+		default:
+			retorno = "0";
+			break;
+			
+		}
+		return retorno;
+	}
+
 
 	public ArrayList<String> consultarSuperClasses(String query) {
 		ArrayList<String> listaDeSuperClasses = new ArrayList<>();
@@ -211,7 +350,7 @@ public class Controlador {
 		}
 		return listaDeSuperClasses;
 	}
-	
+
 	public ArrayList<String> consultarClasses(String query){
 		ArrayList<String> listaDeClasses = new ArrayList<>();
 		Set<OWLClass> classes = this.semanticHelper.consultarClassesDLExpressionClass(query, "ajustar depois");
@@ -220,7 +359,7 @@ public class Controlador {
 		}
 		return listaDeClasses;
 	} 
-	
+
 	public ArrayList<String> consultarInstancias(String query){
 		ArrayList<String> listaDeInstancias = new ArrayList<>();
 		Set<OWLNamedIndividual> instancias = this.semanticHelper.consultarInstanciasDLExpressionClass(query, "ajustar depois");
@@ -229,7 +368,7 @@ public class Controlador {
 		}
 		return listaDeInstancias;
 	}
-	
+
 	public ArrayList<String> consultarEquivalentClasses(String query){
 		ArrayList<String> listaDeEquivalentClasses = new ArrayList<>();
 		Set<OWLClass> equivalentClasses = this.semanticHelper.consultarEquivalentClassesDLExpressionClass(query, "ajustar depois");
@@ -238,7 +377,7 @@ public class Controlador {
 		}
 		return listaDeEquivalentClasses;
 	}
-	
+
 	public ArrayList<String> consultarTodasAsClassesOntologia(){
 		ArrayList<String> listaClasses = new ArrayList<>();
 		Set<OWLClass> listaTodasAsclasses = this.semanticHelper.consultarTodasAsClassesOntologia();
@@ -247,7 +386,7 @@ public class Controlador {
 		}
 		return listaClasses;
 	}
-	
+
 	public ArrayList<String> consultarPropriedadesOntologia(){
 		ArrayList<String> listaPropriedades = new ArrayList<>();
 		Set<OWLObjectProperty> listaTemp = this.semanticHelper.consultarTodasPropriedadesOntologia();
