@@ -24,7 +24,7 @@ public class Controlador {
 	}
 
 	public String submeterConsulta(String queryMDX){
-		String strDimensao = "[Feriado.Default].";
+		String strDimensao = "[Feriado.Default].[Ano].&";
 		String novaConsultaMDX = queryMDX;
 		this.mapDLOntologia = new HashMap<>();
 		this.listaDLOntologia = new ArrayList<>();
@@ -36,7 +36,7 @@ public class Controlador {
 		HashMap<String, String> mapDataFeriado = new HashMap<>();
 		this.colecaoDatasParteIntervaloPorInvididuo = new ArrayList<>();
 
-		StringBuffer strClausulaWhere = new StringBuffer(""); 
+		StringBuffer strClausulaWhere = new StringBuffer("{"); 
 
 		ArrayList<String> ontologyClassExpression = this.extrairClassExpressionEOntologiaRelacionada(queryMDX); //identificando @dl:ontologia@
 		for (String classExpressionString : ontologyClassExpression) {
@@ -57,60 +57,41 @@ public class Controlador {
 
 				String datasParteIntervaloPorIndividuo = this.montarDatasParteFeriado(diasParteIntervalo, diaInicioFimIntervalo, diaSemanaOcorrFeriado, mapDataFeriado);
 
-				if(!datasParteIntervaloPorIndividuo.equals("0/0/0")){
+				if(!datasParteIntervaloPorIndividuo.equals("0/0/0")){ // contém as datas parte de feriado para um único indivíduo
 					if(datasParteIntervaloPorIndividuo.indexOf(",") != -1){  // se != -1 é porque tem mais de uma data
 						String[] vetorDeDatasPorIndividuo = datasParteIntervaloPorIndividuo.split(","); //separando as datas por indivíduo
-						int posicaoAtualVetorDatasPorIndividuo = 0;
-						for (String data : vetorDeDatasPorIndividuo) {
+						int posicaoAtualVetorDatasPorIndividuo = 0; //variável utilizada para controlar a inserção adequada dos tokens do mdx
+						for (String data : vetorDeDatasPorIndividuo) { //cada indivíduo pode ter uma ou várias datas associadas, por isso é preciso varrer o array
 							if(posicaoAtualVetorIndividuos < listaDeIndividuos.size() - 1){ // verificando se não é o último indivíduo recuperado
 								if(posicaoAtualVetorDatasPorIndividuo == 0){
-									strClausulaWhere.append("{");
-									strClausulaWhere.append(strDimensao + "[Ano].&" + "[" + this.extrair("Ano", mapDataFeriado) + "]" + ",");
-									strClausulaWhere.append(strDimensao + "[Mes].&" + "[" + this.extrair("Mes", mapDataFeriado) + "]" +  ",");
-									strClausulaWhere.append(strDimensao + "[Dia].&" + "[" + this.extrair("Dia", mapDataFeriado) + "]");
-									strClausulaWhere.append("}, ");
+									strClausulaWhere.append(strDimensao + data);
+									strClausulaWhere.append(", ");
 								} else if(posicaoAtualVetorDatasPorIndividuo > 0 && posicaoAtualVetorDatasPorIndividuo < vetorDeDatasPorIndividuo.length - 1) {
-									strClausulaWhere.append("{");
-									strClausulaWhere.append(strDimensao + "[Ano].&" + "[" + this.extrair("Ano", mapDataFeriado) + "]" + ",");
-									strClausulaWhere.append(strDimensao + "[Mes].&" + "[" + this.extrair("Mes", mapDataFeriado) + "]" +  ",");
-									strClausulaWhere.append(strDimensao + "[Dia].&" + "[" + this.extrair("Dia", mapDataFeriado) + "]");
-									strClausulaWhere.append("}, ");
+									strClausulaWhere.append(strDimensao + data);
+									strClausulaWhere.append(", ");
 								} else {
-									strClausulaWhere.append("{");
-									strClausulaWhere.append(strDimensao + "[Ano].&" + "[" + this.extrair("Ano", mapDataFeriado) + "]" + ",");
-									strClausulaWhere.append(strDimensao + "[Mes].&" + "[" + this.extrair("Mes", mapDataFeriado) + "]" +  ",");
-									strClausulaWhere.append(strDimensao + "[Dia].&" + "[" + this.extrair("Dia", mapDataFeriado) + "]");
-									strClausulaWhere.append("}");
+									strClausulaWhere.append(strDimensao + data);
+									strClausulaWhere.append(", ");
 								}
 
 								posicaoAtualVetorDatasPorIndividuo++;
 								
 							} else { // é o último indivíduo
 								if(posicaoAtualVetorDatasPorIndividuo == 0){ 
-									strClausulaWhere.append("{");
-									strClausulaWhere.append(strDimensao + "[Ano].&" + this.extrair("Ano", mapDataFeriado) + ",");
-									strClausulaWhere.append(strDimensao + "[Mes].&" + this.extrair("Mes", mapDataFeriado)+ ",");
-									strClausulaWhere.append(strDimensao + "[Dia].&" + this.extrair("Dia", mapDataFeriado));
-									strClausulaWhere.append("}");
+									strClausulaWhere.append(strDimensao + data);
+									strClausulaWhere.append(", ");
 								} else if(posicaoAtualVetorDatasPorIndividuo > 0 && posicaoAtualVetorDatasPorIndividuo < vetorDeDatasPorIndividuo.length - 1) {
-									strClausulaWhere.append("{");
-									strClausulaWhere.append(strDimensao + "[Ano].&" + this.extrair("Ano", mapDataFeriado) + ",");
-									strClausulaWhere.append(strDimensao + "[Mes].&" + this.extrair("Mes", mapDataFeriado)+ ",");
-									strClausulaWhere.append(strDimensao + "[Dia].&" + this.extrair("Dia", mapDataFeriado));
-									strClausulaWhere.append("}");
+									strClausulaWhere.append(strDimensao + data);
+									strClausulaWhere.append(", ");
 								} else {
-									strClausulaWhere.append("{");
-									strClausulaWhere.append(strDimensao + "[Ano].&" + this.extrair("Ano", mapDataFeriado) + ",");
-									strClausulaWhere.append(strDimensao + "[Mes].&" + this.extrair("Mes", mapDataFeriado)+ ",");
-									strClausulaWhere.append(strDimensao + "[Dia].&" + this.extrair("Dia", mapDataFeriado));
-									strClausulaWhere.append("}");
+									strClausulaWhere.append(strDimensao + data);
 								}
 
 								posicaoAtualVetorDatasPorIndividuo++;
 
 							}
 						}
-					} else {
+					} else { // significa que o indivíduo possui apenas uma data, ou seja, não possui um intervalo de dias
 						strClausulaWhere.append("{");
 						strClausulaWhere.append(strDimensao + "[Ano].&" + "[" + this.extrair("Ano", mapDataFeriado) + "]" + ",");
 						strClausulaWhere.append(strDimensao + "[Mes].&" + "[" + this.extrair("Mes", mapDataFeriado) + "]" +  ",");
@@ -118,7 +99,13 @@ public class Controlador {
 						strClausulaWhere.append("}");
 					}
 				}
-
+				
+				if(posicaoAtualVetorIndividuos != listaDeIndividuos.size() -1 ){
+					//strClausulaWhere.append(", ");
+				} else {
+					strClausulaWhere.append("}");
+				}
+				
 				posicaoAtualVetorIndividuos++;
 			}
 
@@ -126,14 +113,6 @@ public class Controlador {
 		}
 
 		return novaConsultaMDX;
-	}
-
-	private String adicionarFiltroWhere(HashMap<String, String> mapDataFeriado) {
-		StringBuffer sb = new StringBuffer();
-		sb.append(".&" + "[" + this.extrair("Ano", mapDataFeriado) + "], " );
-		sb.append(".&" + "[" + this.extrair("Mes", mapDataFeriado) + "], " );
-		sb.append(".&" + "[" + this.extrair("Dia", mapDataFeriado) + "] " );
-		return sb.toString();
 	}
 
 	/**
@@ -242,9 +221,9 @@ public class Controlador {
 	public String montarDatasParteFeriado(String diasParteDeIntervalo, String diaInicioFimIntervalo,
 			String diaSemanaOcorrFeriado, HashMap<String, String> mapDataFeriado) {
 
-		int dia = Integer.parseInt(this.extrair("Dia", mapDataFeriado));
-		int mes = Integer.parseInt(this.extrair("Mes", mapDataFeriado));
-		int ano = Integer.parseInt(this.extrair("Ano", mapDataFeriado));
+		int dia = this.extrair("Dia", mapDataFeriado);
+		int mes = this.extrair("Mes", mapDataFeriado);
+		int ano = this.extrair("Ano", mapDataFeriado);
 
 		String data = "";
 		int diaBase = 0;
@@ -274,25 +253,25 @@ public class Controlador {
 			if(vetorDiasParteDeIntervalo.length > 1){
 				//feriadaoFimDeSemana - sexta, sábado, domingo
 				if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("sexta")){
-					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + diaBase + "]" + ", ");
 					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
 					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
 
 					//impresadoFimDeSemana	- quinta, sexta, sábado, domingo
 				} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[0]) && diaSemanaOcorrFeriado.equals("quinta")){
-					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + diaBase + "]" + ", ");
 					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
 					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
 
 					//feriadaoInicioSemana - sábado, domingo, segunda
 				} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[1]) && diaSemanaOcorrFeriado.equals("segunda")){
-					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + diaBase + "]" + ", ");
 					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
 					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
 
 					//imprensadoInicioSemana - sábado, domingo, segunda, terça
 				} else if(diaSemanaOcorrFeriado.equals(vetorInicioFimIntervalo[1]) && diaSemanaOcorrFeriado.equals("terca")){
-					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
+					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + diaBase + "]" + ", ");
 					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]" + ", ");
 					datasIntervalo.append("[" + ano + "]" + "." + "[" + mes + "]" + "." + "[" + ++diaBase + "]");
 				}
@@ -308,33 +287,67 @@ public class Controlador {
 		return retorno;
 	}
 
-	private String extrair(String str, HashMap<String, String> mapDataFeriado) {
-		String retorno = "";
+	/**
+	 * Recebe datas no formato [ano].[mes].[dia]
+	 * @param str
+	 * @param data
+	 * @return dia, mes ou ano da data passada por parâmetro
+	 */
+	private int extrairComponenteDeData(String param, String data) {
+		int retorno = 0;
+		String[] vetor = data.split("\\."); 
+		
+		switch (param) {
+			case "Dia":
+				retorno = Integer.parseInt((vetor[2].substring(1, vetor[2].length()-1).replaceAll("\\s+$", "")).replaceAll("^\\s+", ""));
+			break;
+	
+			case "Mes":
+				retorno = Integer.parseInt((vetor[1].substring(1, vetor[1].length()-1).replaceAll("\\s+$", "")).replaceAll("^\\s+", ""));
+			break;
+			case "Ano":
+				try{
+					retorno = Integer.parseInt(vetor[0].substring(1, vetor[0].length()-1).trim());
+				}catch(Exception e){
+					retorno = Integer.parseInt(vetor[0].substring(2, vetor[0].length()-1).trim());
+				}
+			break;
+			
+			default:
+				retorno = 0;
+				break;
+		}
+		
+		return retorno;
+	}
+	
+	private int extrair(String str, HashMap<String,String> mapDataFeriado) {
+		int retorno = 0;
 		switch (str) {
 		case "Dia":
 			try{
-				retorno = mapDataFeriado.get("Dia").substring(1, 3);
+				retorno = Integer.parseInt(mapDataFeriado.get("Dia").substring(1, 3));
 			} catch(Exception e){
-				retorno = mapDataFeriado.get("Dia").substring(1, 2);
+				retorno = Integer.parseInt(mapDataFeriado.get("Dia").substring(1, 2));
 			}
 		break;
 
 		case "Mes":
 			try{
-				retorno = mapDataFeriado.get("Mes").substring(1, 3);
+				retorno = Integer.parseInt(mapDataFeriado.get("Mes").substring(1, 3));
 			} catch(Exception e){
-				retorno = mapDataFeriado.get("Mes").substring(1, 2);
+				retorno = Integer.parseInt(mapDataFeriado.get("Mes").substring(1, 2));
 			}
 		break;
 		case "Ano":
 			try{
-				retorno = mapDataFeriado.get("Ano").substring(1, 5);
+				retorno = Integer.parseInt(mapDataFeriado.get("Ano").substring(1, 5));
 			} catch(Exception e){
-				retorno = "0";
+				retorno = 0;
 			}
 		break;
 		default:
-			retorno = "0";
+			retorno = 0;
 			break;
 			
 		}

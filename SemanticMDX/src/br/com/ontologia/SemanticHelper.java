@@ -270,9 +270,9 @@ public class SemanticHelper implements SemanticHelperInterface{
 
 		for (ClasseFeriado feriado : feriados) {
 			OWLIndividual descricaoFeriado = factory.getOWLNamedIndividual(IRI.create(Configuracoes.IRI_BASE + "#" + feriado.getNome())); //novo indivíduo
-			
+
 			String diaDaSemanaOcorFeriado = AssistenteDeData.retornarDiaSemana(Integer.parseInt(feriado.getAno()), Integer.parseInt(feriado.getMes()), Integer.parseInt(feriado.getDia()));
-				
+
 			OWLIndividual diaSemanaOcorrencia = factory.getOWLNamedIndividual(IRI.create(Configuracoes.IRI_BASE + "#" + diaDaSemanaOcorFeriado));
 			OWLObjectProperty property = factory.getOWLObjectProperty(IRI.create(Configuracoes.IRI_BASE + "#temDiaFeriado"));
 			OWLObjectPropertyAssertionAxiom axiom1 = factory.getOWLObjectPropertyAssertionAxiom(property, descricaoFeriado, diaSemanaOcorrencia);
@@ -302,7 +302,6 @@ public class SemanticHelper implements SemanticHelperInterface{
 			manager.applyChange(addAxiomAno);
 
 			manager.saveOntology(OWL_ONTOLOGY);
-
 		}
 	}
 
@@ -311,7 +310,7 @@ public class SemanticHelper implements SemanticHelperInterface{
 		ArrayList<ClasseFeriado> feriadosDW = dh.consultarFeriados();
 		ArrayList<ClasseFeriado> feriados = new ArrayList<>();
 		SemanticHelper sh = new SemanticHelper();
-		
+
 		for (ClasseFeriado classeFeriado : feriadosDW) {
 			if(classeFeriado.getNome() != null || !classeFeriado.getNome().equals("")){
 				ClasseFeriado classeFeriadoTemp = new ClasseFeriado();
