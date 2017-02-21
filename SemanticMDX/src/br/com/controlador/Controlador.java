@@ -24,7 +24,7 @@ public class Controlador {
 	}
 
 	public String submeterConsulta(String queryMDX){
-		String strDimensao = "[Feriado.Default].[Ano].&";
+		String strDimensao = "[Feriado]";
 		String novaConsultaMDX = queryMDX;
 		this.mapDLOntologia = new HashMap<>();
 		this.listaDLOntologia = new ArrayList<>();
@@ -35,8 +35,9 @@ public class Controlador {
 		String diaSemanaOcorrFeriado = "";
 		HashMap<String, String> mapDataFeriado = new HashMap<>();
 		this.colecaoDatasParteIntervaloPorInvididuo = new ArrayList<>();
+		String strClausulaWhere = "";
 
-		StringBuffer strClausulaWhere = new StringBuffer("{"); 
+		StringBuffer clausulaWhere = new StringBuffer("{"); 
 
 		ArrayList<String> ontologyClassExpression = this.extrairClassExpressionEOntologiaRelacionada(queryMDX); //identificando @dl:ontologia@
 		for (String classExpressionString : ontologyClassExpression) {
@@ -64,52 +65,54 @@ public class Controlador {
 						for (String data : vetorDeDatasPorIndividuo) { //cada indivíduo pode ter uma ou várias datas associadas, por isso é preciso varrer o array
 							if(posicaoAtualVetorIndividuos < listaDeIndividuos.size() - 1){ // verificando se não é o último indivíduo recuperado
 								if(posicaoAtualVetorDatasPorIndividuo == 0){
-									strClausulaWhere.append(strDimensao + data);
-									strClausulaWhere.append(", ");
+									clausulaWhere.append(strDimensao + "." + data);
+									clausulaWhere.append(", ");
 								} else if(posicaoAtualVetorDatasPorIndividuo > 0 && posicaoAtualVetorDatasPorIndividuo < vetorDeDatasPorIndividuo.length - 1) {
-									strClausulaWhere.append(strDimensao + data);
-									strClausulaWhere.append(", ");
+									clausulaWhere.append(strDimensao + "." + data);
+									clausulaWhere.append(", ");
 								} else {
-									strClausulaWhere.append(strDimensao + data);
-									strClausulaWhere.append(", ");
+									clausulaWhere.append(strDimensao + "." + data);
+									clausulaWhere.append(", ");
 								}
 
 								posicaoAtualVetorDatasPorIndividuo++;
 								
 							} else { // é o último indivíduo
 								if(posicaoAtualVetorDatasPorIndividuo == 0){ 
-									strClausulaWhere.append(strDimensao + data);
-									strClausulaWhere.append(", ");
+									clausulaWhere.append(strDimensao + "." + data);
+									clausulaWhere.append(", ");
 								} else if(posicaoAtualVetorDatasPorIndividuo > 0 && posicaoAtualVetorDatasPorIndividuo < vetorDeDatasPorIndividuo.length - 1) {
-									strClausulaWhere.append(strDimensao + data);
-									strClausulaWhere.append(", ");
+									clausulaWhere.append(strDimensao + "." + data);
+									clausulaWhere.append(", ");
 								} else {
-									strClausulaWhere.append(strDimensao + data);
+									clausulaWhere.append(strDimensao + "." + data);
 								}
-
+								
 								posicaoAtualVetorDatasPorIndividuo++;
 
 							}
 						}
 					} else { // significa que o indivíduo possui apenas uma data, ou seja, não possui um intervalo de dias
-						strClausulaWhere.append("{");
-						strClausulaWhere.append(strDimensao + "[Ano].&" + "[" + this.extrair("Ano", mapDataFeriado) + "]" + ",");
-						strClausulaWhere.append(strDimensao + "[Mes].&" + "[" + this.extrair("Mes", mapDataFeriado) + "]" +  ",");
-						strClausulaWhere.append(strDimensao + "[Dia].&" + "[" + this.extrair("Dia", mapDataFeriado) + "]");
-						strClausulaWhere.append("}");
+						clausulaWhere.append(strDimensao + "."); 
+						clausulaWhere.append("[" + this.extrair("Ano", mapDataFeriado) + "]" + ".");
+						clausulaWhere.append("[" + this.extrair("Mes", mapDataFeriado) + "]" + ".");
+						clausulaWhere.append("[" + this.extrair("Dia", mapDataFeriado) + "]");
 					}
 				}
 				
 				if(posicaoAtualVetorIndividuos != listaDeIndividuos.size() -1 ){
 					//strClausulaWhere.append(", ");
 				} else {
-					strClausulaWhere.append("}");
+					clausulaWhere.append("}");
 				}
+				
+				strClausulaWhere = clausulaWhere.toString();
+				strClausulaWhere = strClausulaWhere.replaceAll("\\s", "");
 				
 				posicaoAtualVetorIndividuos++;
 			}
 
-			novaConsultaMDX = novaConsultaMDX.replace(Configuracoes.DELIMITADOR_SEMANTICO + classExpressionString + Configuracoes.DELIMITADOR_SEMANTICO, strClausulaWhere.toString());
+			novaConsultaMDX = novaConsultaMDX.replace(Configuracoes.DELIMITADOR_SEMANTICO + classExpressionString + Configuracoes.DELIMITADOR_SEMANTICO, strClausulaWhere);
 		}
 
 		return novaConsultaMDX;
@@ -407,5 +410,9 @@ public class Controlador {
 			listaPropriedades.add(this.extrairInformacaoFormatoOntologia(listaTemp.toString()));
 		}
 		return listaPropriedades;
+	}
+	
+	public void consultarCidades(){
+		
 	}
 }

@@ -10,6 +10,7 @@ import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -31,13 +32,16 @@ import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
 import br.com.ontologia.dlquery.DLQueryEngine;
-import br.com.ontologia.dw.DimensionHelper;
+import br.com.ontologia.dw.RegionHelper;
 import br.com.pojo.ClasseFeriado;
+import br.com.pojo.Region;
 import br.com.util.AssistenteDeData;
 import br.com.util.Configuracoes;
 
 public class SemanticHelper implements SemanticHelperInterface{
-	private static final File file = new File("C:\\Users\\clayton\\git\\projeto-mestrado-arquivos\\testandoTopObjectProperty.owl");
+	//private static final File file = new File("C:\\Users\\clayton\\git\\projeto-mestrado-arquivos\\testandoTopObjectProperty.owl");
+	//private static final File file = new File("C:\\Users\\clayton\\Desktop\\testandoTopObjectPropertyBackup.owl");
+	private static final File file = new File("C:\\Users\\clayton\\Dropbox\\Ontologia de Feriados\\backup Ontologias\\ontoTerritorio.owl");
 	private static OWLOntology OWL_ONTOLOGY = null;
 
 	private OWLReasoner reasoner;
@@ -262,6 +266,7 @@ public class SemanticHelper implements SemanticHelperInterface{
 		return OWL_ONTOLOGY.getObjectPropertiesInSignature();
 	}
 
+	//mover os dois últimos métodos para o módulo de ETL
 	@Override
 	public void criarInstanciasFeriados(ArrayList<ClasseFeriado> feriados) throws OWLOntologyCreationException, OWLOntologyStorageException {
 
@@ -305,8 +310,52 @@ public class SemanticHelper implements SemanticHelperInterface{
 		}
 	}
 
+
+	/**
+	 * Esse método deve ser refatorado. foi feito nas pressas
+	 * @param regionsList
+	 * @throws OWLOntologyCreationException
+	 * @throws OWLOntologyStorageException
+	 */
+	public void criarInstanciasRegions(ArrayList<Region> regionsList) throws OWLOntologyCreationException, OWLOntologyStorageException {
+
+		OWLOntologyManager manager = OWL_ONTOLOGY.getOWLOntologyManager(); 
+		OWLDataFactory dataFactory = OWL_ONTOLOGY.getOWLOntologyManager().getOWLDataFactory();
+        
+		// utilizado apenas pra gerar instâncias aleatórias das classes de region
+		int count = 0;
+		for (Region region: regionsList) {
+			if(count < 20){
+		        OWLIndividual city = dataFactory.getOWLNamedIndividual(IRI.create(Configuracoes.IRI_BASE + "#" + region.getCity()));
+		        OWLClass smallCityClass = dataFactory.getOWLClass(IRI.create(Configuracoes.IRI_BASE + "#SmallCity"));
+		        OWLClassAssertionAxiom ax = dataFactory.getOWLClassAssertionAxiom(smallCityClass, city);
+		        manager.addAxiom(OWL_ONTOLOGY, ax);
+		        manager.saveOntology(OWL_ONTOLOGY);
+			} else if(count >= 20 && count <40){
+				OWLIndividual city = dataFactory.getOWLNamedIndividual(IRI.create(Configuracoes.IRI_BASE + "#" + region.getCity()));
+		        OWLClass middleCityClass = dataFactory.getOWLClass(IRI.create(Configuracoes.IRI_BASE + "#MiddleCity"));
+		        OWLClassAssertionAxiom ax = dataFactory.getOWLClassAssertionAxiom(middleCityClass, city);
+		        manager.addAxiom(OWL_ONTOLOGY, ax);
+		        manager.saveOntology(OWL_ONTOLOGY);
+			} else {
+				OWLIndividual city = dataFactory.getOWLNamedIndividual(IRI.create(Configuracoes.IRI_BASE + "#" + region.getCity()));
+		        OWLClass bigCityClass = dataFactory.getOWLClass(IRI.create(Configuracoes.IRI_BASE + "#BigCity"));
+		        OWLClassAssertionAxiom ax = dataFactory.getOWLClassAssertionAxiom(bigCityClass, city);
+		        manager.addAxiom(OWL_ONTOLOGY, ax);
+		        manager.saveOntology(OWL_ONTOLOGY);
+			}
+			count++;
+		}
+		manager.saveOntology(OWL_ONTOLOGY);
+	}
+
+	/**
+	 * Remover esse método daqui e colocar no módulo ETL
+	 * @param args
+	 */
 	public static void main(String args[]){
-		DimensionHelper dh = new DimensionHelper();
+		//cria instâncias na ontologia de feriados. Descomentar e transferir para o módulo de ETL
+		/*		DimensionHelper dh = new DimensionHelper();
 		ArrayList<ClasseFeriado> feriadosDW = dh.consultarFeriados();
 		ArrayList<ClasseFeriado> feriados = new ArrayList<>();
 		SemanticHelper sh = new SemanticHelper();
@@ -327,7 +376,18 @@ public class SemanticHelper implements SemanticHelperInterface{
 			sh.criarInstanciasFeriados(feriados);
 		} catch (OWLOntologyCreationException | OWLOntologyStorageException e) {
 			e.printStackTrace();
+		}*/
+
+		RegionHelper rh = new RegionHelper();
+		ArrayList<Region> regionsList = rh.consultarRegions();
+		SemanticHelper sh = new SemanticHelper();
+
+		try {
+			sh.criarInstanciasRegions(regionsList);
+		} catch (OWLOntologyCreationException | OWLOntologyStorageException e) {
+			e.printStackTrace();
 		}
+
 
 	}
 }

@@ -14,22 +14,26 @@ import br.com.controlador.Controlador;
 import br.com.pojo.ClassesOntologia;
 import br.com.pojo.RetornoOntologia;
 
+@SuppressWarnings("unused")
 @Path("/dl")
 public class WS_RetornoOntologia {
 	
 	@Path("{query}")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
-	public RetornoOntologia submeterConsultaMDX(String query) throws JSONException {
+	public /*RetornoOntologia*/String submeterConsultaMDX(String query) throws JSONException {
 		Controlador mediador = new Controlador();
 
-		RetornoOntologia retornoOntologia = new RetornoOntologia();
+		/*RetornoOntologia retornoOntologia = new RetornoOntologia();
 		retornoOntologia.setInstances(mediador.consultarInstancias(query));
 		retornoOntologia.setClasses(mediador.consultarSuperClasses(query));
 		retornoOntologia.setEquivalentClasses(mediador.consultarEquivalentClasses(query));
-		retornoOntologia.setSuperClasses(mediador.consultarSuperClasses(query));
+		retornoOntologia.setSuperClasses(mediador.consultarSuperClasses(query));*/
 		
-		return retornoOntologia;
+		//Controlador mediador = new Controlador();
+		String novaConsulta = mediador.submeterConsulta(query);
+		return novaConsulta;
+		//return retornoOntologia;
 	}
 	
 	@Path("{classes}")
